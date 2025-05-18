@@ -1,0 +1,25 @@
+name: Paylaş APK Telegram
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: APK linkini al ve Telegram'a gönder
+        run: |
+          FILE_URL=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest \
+            | jq -r '.assets[] | select(.name | endswith(".apk")) | .browser_download_url')
+
+          if [ -z "$FILE_URL" ]; then
+            echo "APK dosyası bulunamadı."
+            exit 0
+          fi
+
+          MESSAGE="Yeni CloudStream sürümü yayınlandı!%0A${{ github.event.release.tag_name }}%0Aİndir: $FILE_URL"
+
+          curl -s -X POST "https://api.telegram.org/bot7624563368:AAFPJPuDtUX_Px27BKNsXgk-dH5P9ULWhp8/sendMessage" \
+            -d chat_id="-1002587456299" \
+            -d text="$MESSAGE"
